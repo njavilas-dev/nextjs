@@ -50,14 +50,12 @@ jobs:
       - name: Install Bun globally
         run: npm install -g bun@latest
 
-      - name: Install builder dependencies
+      - name: Install dependencies
+        strategy:
+          matrix:
+            app: [builder, viewer]
         run: |
-          cd apps/builder
-          SKIP_ENV_CHECK=true bun install
-
-      - name: Install viewer dependencies
-        run: |
-          cd apps/viewer
+          cd apps/${{ matrix.app }}
           SKIP_ENV_CHECK=true bun install
 
       - name: Copy env to .env
