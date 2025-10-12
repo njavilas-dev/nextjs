@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: ['**']
+    branches: ["**"]
   pull_request:
-    branches: ['**']
+    branches: ["**"]
 
 permissions:
   contents: read
@@ -12,27 +12,26 @@ permissions:
 
 env:
   NODE_OPTIONS: --no-node-snapshot --max-old-space-size=16384
-  DATABASE_URL: 'postgresql://labs:labs_pass@localhost:5432/labs'
-  DATABASE_DIRECT_URL: 'postgresql://labs:labs_pass@localhost:5432/labs'
+  DATABASE_URL: "postgresql://labs:labs_pass@localhost:5432/labs"
+  DATABASE_DIRECT_URL: "postgresql://labs:labs_pass@localhost:5432/labs"
 
 services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: labs_pass
-          POSTGRES_USER: labs
-          POSTGRES_DB: labs
-        options: >-
-          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-        ports:
-          - 5432:5432
-          
+  postgres:
+    image: postgres:15
+    env:
+      POSTGRES_PASSWORD: labs_pass
+      POSTGRES_USER: labs
+      POSTGRES_DB: labs
+    options: >-
+      --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    ports:
+      - 5432:5432
+
 jobs:
   build:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'pull_request'
 
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -158,8 +157,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags:
-            ghcr.io/${{ github.repository_owner }}/quick.bot:builder-${{ steps.tag.outputs.tag }}
+          tags: ghcr.io/${{ github.repository_owner }}/quick.bot:builder-${{ steps.tag.outputs.tag }}
           build-args: |
             SCOPE=builder
             ${{ env.docker_build_args }}
