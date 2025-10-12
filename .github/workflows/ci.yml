@@ -15,12 +15,7 @@ env:
   DATABASE_URL: 'postgresql://labs:labs_pass@localhost:5432/labs'
   DATABASE_DIRECT_URL: 'postgresql://labs:labs_pass@localhost:5432/labs'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-
-    services:
+services:
       postgres:
         image: postgres:15
         env:
@@ -31,7 +26,13 @@ jobs:
           --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
         ports:
           - 5432:5432
+          
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
 
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -65,44 +66,33 @@ jobs:
           chmod +x .github/scripts/setup-env.sh
           ./.github/scripts/setup-env.sh .env
 
-      - name: Build builder
+      - name: Build apps
+        strategy:
+          matrix:
+            app: [builder, viewer]
         run: |
-          cd apps/builder
+          cd apps/${{ matrix.app }}
           SKIP_ENV_CHECK=true bun run build
 
-      - name: Build viewer
+      - name: Verify build outputs
+        strategy:
+          matrix:
+            app: [builder, viewer]
         run: |
-          cd apps/viewer
-          SKIP_ENV_CHECK=true bun run build
-
-      - name: Verify builder build output
-        run: |
-          if [ ! -d "apps/builder/.next/standalone" ]; then
-            echo "Error: apps/builder/.next/standalone was not generated"
+          if [ ! -d "apps/${{ matrix.app }}/.next/standalone" ]; then
+            echo "Error: apps/${{ matrix.app }}/.next/standalone was not generated"
             exit 1
           fi
-          echo "✓ apps/builder/.next/standalone generated successfully"
+          echo "✓ apps/${{ matrix.app }}/.next/standalone generated successfully"
 
-      - name: Verify viewer build output
-        run: |
-          if [ ! -d "apps/viewer/.next/standalone" ]; then
-            echo "Error: apps/viewer/.next/standalone was not generated"
-            exit 1
-          fi
-          echo "✓ apps/viewer/.next/standalone generated successfully"
-
-      - name: Upload builder artifact
+      - name: Upload artifacts
+        strategy:
+          matrix:
+            app: [builder, viewer]
         uses: actions/upload-artifact@v4
         with:
-          name: builder-standalone
-          path: apps/builder/.next/standalone
-          retention-days: 1
-
-      - name: Upload viewer artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: viewer-standalone
-          path: apps/viewer/.next/standalone
+          name: ${{ matrix.app }}-standalone
+          path: apps/${{ matrix.app }}/.next/standalone
           retention-days: 1
 
   container:
