@@ -31,6 +31,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        app: [builder, viewer]
 
     steps:
       - name: Checkout repository
@@ -51,9 +54,6 @@ jobs:
         run: npm install -g bun@latest
 
       - name: Install dependencies
-        strategy:
-          matrix:
-            app: [builder, viewer]
         run: |
           cd apps/${{ matrix.app }}
           SKIP_ENV_CHECK=true bun install
@@ -63,18 +63,12 @@ jobs:
           chmod +x .github/scripts/setup-env.sh
           ./.github/scripts/setup-env.sh .env
 
-      - name: Build apps
-        strategy:
-          matrix:
-            app: [builder, viewer]
+      - name: Build app
         run: |
           cd apps/${{ matrix.app }}
           SKIP_ENV_CHECK=true bun run build
 
-      - name: Verify build outputs
-        strategy:
-          matrix:
-            app: [builder, viewer]
+      - name: Verify build output
         run: |
           if [ ! -d "apps/${{ matrix.app }}/.next/standalone" ]; then
             echo "Error: apps/${{ matrix.app }}/.next/standalone was not generated"
@@ -82,10 +76,7 @@ jobs:
           fi
           echo "✓ apps/${{ matrix.app }}/.next/standalone generated successfully"
 
-      - name: Upload artifacts
-        strategy:
-          matrix:
-            app: [builder, viewer]
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.app }}-standalone
@@ -96,6 +87,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        app: [builder, viewer]
 
     env:
       docker_build_args: |
@@ -113,17 +107,11 @@ jobs:
         NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
 
     steps:
-      - name: Download builder artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: builder-standalone
-          path: apps/builder/.next/standalone
-
-      - name: Download viewer artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: viewer-standalone
-          path: apps/viewer/.next/standalone
+          name: ${{ matrix.app }}-standalone
+          path: apps/${{ matrix.app }}/.next/standalone
 
       - name: Determine tag
         id: tag
@@ -150,9 +138,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Container
-        strategy:
-          matrix:
-            app: [builder, viewer]
         uses: docker/build-push-action@v5
         with:
           context: .
