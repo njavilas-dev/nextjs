@@ -207,6 +207,11 @@ jobs:
           cd apps/builder
           echo "Generating Prisma client..."
           bun run db:generate
+          echo "Creating initial migration if needed..."
+          if [ ! -d "prisma/migrations" ]; then
+            echo "No migrations found, creating initial migration..."
+            bunx prisma migrate dev --name init --create-only
+          fi
           echo "Running migrations..."
           bun run db:migrate:deploy
           echo "Running seed..."
