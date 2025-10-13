@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Verificar que SCOPE esté definido
+# Check if SCOPE is defined
 if [ -z "$SCOPE" ]; then
-    echo "Error: La variable SCOPE no está definida"
+    echo "Error: SCOPE is not defined"
     exit 1
 fi
 
-# Verificar que el archivo server.js existe
-if [ ! -f "/app/apps/$SCOPE/server.js" ]; then
-    echo "Error: No se encontró /app/apps/$SCOPE/server.js"
+# Check if server.js exists
+if [ ! -f "/app/server.js" ]; then
+    echo "Error: Not found server.js"
     exit 1
 fi
 
-echo "Iniciando aplicación: $SCOPE"
-exec node "apps/$SCOPE/server.js" 
+echo "Starting application: $SCOPE"
+exec node "server.js" 
