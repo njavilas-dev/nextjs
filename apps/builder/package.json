@@ -11,7 +11,7 @@
     "clean": "rm -rf .next dist",
     "db:generate": "prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:seed": "ts-node --compiler-options '{\"module\":\"commonjs\"}' prisma/seed.ts || node prisma/seed.js"
+    "db:seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",
