@@ -168,6 +168,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Bun
+        run: npm install -g bun@latest
+
       - name: Set .env
         run: |
           if grep -q "^DATABASE_URL=" .env; then
