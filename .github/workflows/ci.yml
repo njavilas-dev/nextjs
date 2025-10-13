@@ -205,6 +205,8 @@ jobs:
           DATABASE_DIRECT_URL: ${{ secrets.DATABASE_DIRECT_URL }}
         run: |
           cd apps/builder
+          echo "Generating Prisma client..."
+          bun run db:generate
           echo "Running migrations..."
           bun run db:migrate:deploy
           echo "Running seed..."
