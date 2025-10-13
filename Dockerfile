@@ -28,8 +28,13 @@ COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 COPY ./apps/${SCOPE}/.next/standalone ./
-COPY ./apps/${SCOPE}/.next/static ./apps/${SCOPE}/.next/static
-COPY ./apps/${SCOPE}/public ./apps/${SCOPE}/public
+
+# Copy the copy-assets script
+COPY scripts/copy-assets.sh /copy-assets.sh
+RUN chmod +x /copy-assets.sh
+
+# Run the script to copy assets
+RUN /copy-assets.sh ${SCOPE}
 
 EXPOSE 3000
 CMD ["/entrypoint.sh"]
