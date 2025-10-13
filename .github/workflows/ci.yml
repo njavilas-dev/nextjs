@@ -66,6 +66,7 @@ jobs:
           ./.github/scripts/setup-env.sh .env
 
       - name: Generate Prisma client (builder)
+        if: matrix.app == 'builder'
         run: |
           cd apps/builder
           bun run db:generate
