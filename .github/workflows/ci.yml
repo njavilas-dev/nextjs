@@ -268,8 +268,8 @@ jobs:
         service: [builder, viewer]
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_SERVICE_ID_BUILDER: bcaf8c66-92ad-4e18-aeff-1b0d85791585
-      RAILWAY_SERVICE_ID_VIEWER: d6410c83-e5ca-480e-a0e8-e00d96d71524
+      RAILWAY_SERVICE_ID_BUILDER: 551c8b58-a55d-402a-9cd9-c4667d7d7e4c
+      RAILWAY_SERVICE_ID_VIEWER: dc80e192-990c-4326-8566-66734571aaa7
     steps:
       - uses: actions/checkout@v4
 
