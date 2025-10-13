@@ -171,6 +171,11 @@ jobs:
       - name: Install Bun
         run: npm install -g bun@latest
 
+      - name: Install dependencies
+        run: |
+          cd apps/builder
+          SKIP_ENV_CHECK=true bun install
+
       - name: Set .env
         run: |
           if grep -q "^DATABASE_URL=" .env; then
