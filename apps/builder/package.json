@@ -9,8 +9,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next dist",
-    "db:generate": "prisma generate",
-    "db:migrate:deploy": "prisma migrate deploy",
+    "db:generate": "bunx prisma generate",
+    "db:migrate:deploy": "bunx prisma migrate deploy",
     "db:seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
