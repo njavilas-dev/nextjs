@@ -217,7 +217,7 @@ jobs:
   deploy-vercel:
     runs-on: ubuntu-latest
     needs: [build, container]
-    if: github.event_name == 'pull_request' && github.head_ref != 'main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && github.base_ref != 'main' && (github.base_ref == 'develop' || github.head_ref == 'develop' || startsWith(github.head_ref, 'feature')))
     strategy:
       matrix:
         app: [builder, viewer]
