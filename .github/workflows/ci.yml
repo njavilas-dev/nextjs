@@ -207,22 +207,20 @@ jobs:
           cd apps/builder
           echo "Generating Prisma client..."
           bun run db:generate
-          echo "Creating initial migration if needed..."
+          echo "Creating baseline migration from current database schema..."
           if [ ! -d "prisma/migrations" ]; then
-            echo "No migrations found, creating initial migration..."
-            bunx prisma migrate dev --name init --create-only
+            echo "No migrations found, creating baseline from current DB schema..."
+            # Pull current schema from database
+            bunx prisma db pull
+            # Create baseline migration
+            bunx prisma migrate dev --name baseline --create-only
+            echo "Baseline migration created successfully"
           else
             echo "Migrations directory exists, checking for drift..."
-            # Check if there's drift and handle it
             bunx prisma migrate status || echo "Migration status check completed"
           fi
           echo "Running migrations..."
-          # Try to deploy migrations, if there's drift, resolve it
-          bun run db:migrate:deploy || {
-            echo "Migration deploy failed, attempting to resolve drift..."
-            bunx prisma migrate resolve --applied 20251013113855_init || echo "Could not resolve existing migration"
-            bun run db:migrate:deploy
-          }
+          bun run db:migrate:deploy
           echo "Running seed..."
           bun run db:seed
 
