@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next dist",
     "db:generate": "bunx prisma generate",
+    "db:migrate": "bunx prisma migrate dev",
     "db:migrate:deploy": "bunx prisma migrate deploy",
     "db:seed": "bun run prisma/seed.ts"
   },

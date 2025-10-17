@@ -207,27 +207,8 @@ jobs:
           cd apps/builder
           echo "Generating Prisma client..."
           bun run db:generate
-          echo "Creating baseline migration from current database schema..."
-          if [ ! -d "prisma/migrations" ]; then
-            echo "No migrations found, attempting to create baseline..."
-            # Try to pull current schema from database
-            echo "Attempting to pull schema from database..."
-            bunx prisma db pull || {
-              echo "Could not connect to database, using local schema as fallback..."
-              # Fallback: create migration from local schema
-              bunx prisma migrate dev --name init --create-only
-              echo "Initial migration created from local schema"
-            }
-            # If db pull succeeded, create baseline migration
-            if [ -f "prisma/schema.prisma" ]; then
-              echo "Creating baseline migration from pulled schema..."
-              bunx prisma migrate dev --name baseline --create-only
-              echo "Baseline migration created successfully"
-            fi
-          else
-            echo "Migrations directory exists, checking for drift..."
-            bunx prisma migrate status || echo "Migration status check completed"
-          fi
+          echo "Checking migration status..."
+          bunx prisma migrate status || echo "Migration status check completed"
           echo "Running migrations..."
           bun run db:migrate:deploy
           echo "Running seed..."
