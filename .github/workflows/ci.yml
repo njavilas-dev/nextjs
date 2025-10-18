@@ -15,7 +15,6 @@ env:
   DATABASE_URL: "postgresql://labs:labs_pass@localhost:5432/labs"
   DATABASE_DIRECT_URL: "postgresql://labs:labs_pass@localhost:5432/labs"
   VERCEL_TOKEN: QEYxiiR0wiD3ltPYEQp81EHc
-  VERCEL_TEAM_ID: team_uC40px38thxGSfx7mzuJxExZ
 
 jobs:
   build:
@@ -29,7 +28,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_PASSWORD: labs_pass
+          POSTGRES_PASSWORD: secure
           POSTGRES_USER: labs
           POSTGRES_DB: labs
         options: >-
@@ -218,9 +217,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, container]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && github.base_ref != 'main' && (github.base_ref == 'develop' || github.head_ref == 'develop' || startsWith(github.head_ref, 'feature')))
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_PROJECT_ID_VIEWER: ${{ secrets.VERCEL_PROJECT_ID_VIEWER }}
+      VERCEL_PROJECT_ID_BUILDER: ${{ secrets.VERCEL_PROJECT_ID_BUILDER }}
+
     strategy:
       matrix:
         app: [builder, viewer]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -236,7 +242,6 @@ jobs:
       - name: Vercel Pull (Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
         run: |
           cd apps/${{ matrix.app }}
           vercel pull --yes --environment=preview --token "$VERCEL_TOKEN"
@@ -294,7 +299,6 @@ jobs:
            --set "NEXT_PUBLIC_VIEWER_URL=${{ secrets.NEXT_PUBLIC_VIEWER_URL }}" \
            --set "NEXT_PUBLIC_VERCEL_VIEWER_PROJECT_NAME=${{ secrets.NEXT_PUBLIC_VERCEL_VIEWER_PROJECT_NAME }}" \
            --set "VERCEL_TOKEN=${{ secrets.VERCEL_TOKEN }}" \
-           --set "VERCEL_TEAM_ID=${{ secrets.VERCEL_TEAM_ID }}" \
            --set "NEXT_PUBLIC_SMTP_FROM=${{ secrets.NEXT_PUBLIC_SMTP_FROM }}" \
            --set "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" \
            --set "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" \
