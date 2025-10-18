@@ -266,7 +266,9 @@ jobs:
             echo "Error: package.json not found in $(pwd)"
             exit 1
           fi
-          vercel build --token "$VERCEL_TOKEN"
+          # Fix Vercel path issue by setting working directory explicitly
+          export VERCEL_PROJECT_ROOT="."
+          vercel build --token "$VERCEL_TOKEN" --cwd .
 
       - name: Vercel Deploy (Preview)
         env:
@@ -282,7 +284,9 @@ jobs:
             echo "Error: package.json not found in $(pwd)"
             exit 1
           fi
-          vercel deploy --prebuilt --token "$VERCEL_TOKEN"
+          # Fix Vercel path issue by setting working directory explicitly
+          export VERCEL_PROJECT_ROOT="."
+          vercel deploy --prebuilt --token "$VERCEL_TOKEN" --cwd .
 
   deploy-railway:
     runs-on: ubuntu-latest
