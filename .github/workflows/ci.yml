@@ -251,7 +251,8 @@ jobs:
         run: |
           cd apps/${{ matrix.app }}
           sed -i "s/\"rootDirectory\": \"apps\/${{ matrix.app }}\"/\"rootDirectory\": \".\"/" .vercel/project.json
-
+          cat .vercel/project.json
+        
       - name: Vercel Build
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
