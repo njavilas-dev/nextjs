@@ -1,18 +1,14 @@
+# Function to remove existing deployments with same metadata
 define remove-existing-deployments
-	@echo "🔍 Checking for existing deployments with same metadata..."
+	@echo "🗑️  Removing existing deployments..."
 	@BRANCH=$$(git branch --show-current || echo "unknown"); \
-	echo "Current branch: $$BRANCH"; \
-	echo "Searching for deployments with branch=$$BRANCH and app=$(1)..."; \
-	vercel list --meta branch=$$BRANCH --meta app=$(1) --token $$VERCEL_TOKEN --cwd apps/$(1) 2>/dev/null | grep -E "https://.*\.vercel\.app" | while read line; do \
-		url=$$(echo $$line | awk '{print $$2}'); \
-		if [ -n "$$url" ]; then \
-			echo "   Removing: $$url"; \
-			vercel remove $$url --token $$VERCEL_TOKEN --yes 2>/dev/null || true; \
-		fi; \
-	done; \
-	echo "✅ Cleanup completed"
+	vercel list --meta branch=$$BRANCH --meta app=$(1) --token $$VERCEL_TOKEN --cwd apps/$(1) 2>/dev/null | grep -o "https://[^ ]*\.vercel\.app" | while read url; do \
+		echo "   Removing: $$url"; \
+		vercel remove $$url --token $$VERCEL_TOKEN --yes 2>/dev/null || true; \
+	done
 endef
 
+# Function to create new deployment
 define create-deployment
 	@echo "🚀 Creating new $(1) deployment..."
 	@BRANCH=$$(git branch --show-current || echo "unknown"); \
@@ -29,29 +25,23 @@ define create-deployment
 	fi
 endef
 
-define create-preview
-	@echo "🚀 Creating new $(1) deployment..."; \
-	BRANCH=$$(git rev-parse --abbrev-ref HEAD || echo "unknown"); \
-	echo "🔍 Using PREVIEW environment for $$BRANCH branch"; \
-	vercel pull --yes --environment=preview --token $$VERCEL_TOKEN --cwd apps/$(1); \
-	vercel build --token $$VERCEL_TOKEN --cwd apps/$(1); \
-	vercel deploy --prebuilt --archive=tgz --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=$$BRANCH" --meta "app=$(1)"
-endef
-
+# Main targets
 builder:
-	$(call create-preview,builder)
 	$(call remove-existing-deployments,builder)
+	$(call create-deployment,builder)
 
 viewer:
-	$(call create-preview,viewer)
 	$(call remove-existing-deployments,viewer)
+	$(call create-deployment,viewer)
 
+# List deployments
 ls-builder:
-	vercel ls --meta branch=$(shell git branch --show-current) --meta app=builder --token $$VERCEL_TOKEN --cwd apps/builder
+	vercel list --meta branch=$(shell git branch --show-current) --meta app=builder --token $$VERCEL_TOKEN --cwd apps/builder
 
 ls-viewer:
-	vercel ls --meta branch=$(shell git branch --show-current) --meta app=viewer --token $$VERCEL_TOKEN --cwd apps/viewer
+	vercel list --meta branch=$(shell git branch --show-current) --meta app=viewer --token $$VERCEL_TOKEN --cwd apps/viewer
 
+# Remove only targets
 remove-builder:
 	$(call remove-existing-deployments,builder)
 
