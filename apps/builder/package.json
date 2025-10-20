@@ -12,7 +12,8 @@
     "db:generate": "bunx prisma generate",
     "db:migrate": "bunx prisma migrate dev",
     "db:migrate:deploy": "bunx prisma migrate deploy",
-    "db:seed": "bun run prisma/seed.ts"
+    "db:seed": "bun run prisma/seed.ts",
+    "vercel-build": "bun run db:generate && next build"
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",
