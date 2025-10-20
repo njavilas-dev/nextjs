@@ -2,16 +2,15 @@ define remove-existing-deployments
 	@echo "🔍 Checking for existing deployments with same metadata..."
 	@BRANCH=$$(git branch --show-current || echo "unknown"); \
 	echo "Current branch: $$BRANCH"; \
-	EXISTING_DEPLOYMENTS=$$(vercel ls --meta branch=$$BRANCH --meta app=$(1) --token $$VERCEL_TOKEN --cwd apps/$(1) --json 2>/dev/null || echo "[]"); \
-	if [ "$$EXISTING_DEPLOYMENTS" != "[]" ]; then \
-		echo "🗑️  Found existing deployments, removing them..."; \
-		echo $$EXISTING_DEPLOYMENTS | jq -r '.[].url' | while read url; do \
+	echo "Searching for deployments with branch=$$BRANCH and app=$(1)..."; \
+	vercel list --meta branch=$$BRANCH --meta app=$(1) --token $$VERCEL_TOKEN --cwd apps/$(1) 2>/dev/null | grep -E "https://.*\.vercel\.app" | while read line; do \
+		url=$$(echo $$line | awk '{print $$2}'); \
+		if [ -n "$$url" ]; then \
 			echo "   Removing: $$url"; \
 			vercel remove $$url --token $$VERCEL_TOKEN --yes 2>/dev/null || true; \
-		done; \
-	else \
-		echo "✅ No existing deployments found"; \
-	fi
+		fi; \
+	done; \
+	echo "✅ Cleanup completed"
 endef
 
 define create-deployment
@@ -40,15 +39,21 @@ define create-preview
 endef
 
 builder:
-	$(call remove-existing-deployments,builder)
 	$(call create-preview,builder)
+	$(call remove-existing-deployments,builder)
 
 viewer:
-	$(call remove-existing-deployments,viewer)
 	$(call create-preview,viewer)
+	$(call remove-existing-deployments,viewer)
 
 ls-builder:
 	vercel ls --meta branch=$(shell git branch --show-current) --meta app=builder --token $$VERCEL_TOKEN --cwd apps/builder
 
 ls-viewer:
 	vercel ls --meta branch=$(shell git branch --show-current) --meta app=viewer --token $$VERCEL_TOKEN --cwd apps/viewer
+
+remove-builder:
+	$(call remove-existing-deployments,builder)
+
+remove-viewer:
+	$(call remove-existing-deployments,viewer)
