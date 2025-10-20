@@ -21,12 +21,12 @@ define create-deployment
 		echo "📦 Using PRODUCTION environment for develop branch"; \
 		vercel pull --yes --environment=production --token $$VERCEL_TOKEN --cwd apps/$(1); \
 		vercel build --prod --token $$VERCEL_TOKEN --cwd apps/$(1); \
-		vercel deploy --prebuilt --prod --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=develop" --meta "app=$(1)"; \
+		vercel deploy --prebuilt --archive=tgz --prod --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=develop" --meta "app=$(1)"; \
 	else \
 		echo "🔍 Using PREVIEW environment for $$BRANCH branch"; \
 		vercel pull --yes --environment=preview --token $$VERCEL_TOKEN --cwd apps/$(1); \
 		vercel build --token $$VERCEL_TOKEN --cwd apps/$(1); \
-		vercel deploy --prebuilt --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=$$BRANCH" --meta "app=$(1)"; \
+		vercel deploy --prebuilt --archive=tgz --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=$$BRANCH" --meta "app=$(1)"; \
 	fi
 endef
 
@@ -36,7 +36,7 @@ define create-preview
 	echo "🔍 Using PREVIEW environment for $$BRANCH branch"; \
 	vercel pull --yes --environment=preview --token $$VERCEL_TOKEN --cwd apps/$(1); \
 	vercel build --token $$VERCEL_TOKEN --cwd apps/$(1); \
-	vercel deploy --prebuilt --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=$$BRANCH" --meta "app=$(1)"
+	vercel deploy --prebuilt --archive=tgz --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=$$BRANCH" --meta "app=$(1)"
 endef
 
 builder:
