@@ -1,49 +1,70 @@
-# Function to remove existing deployments with same metadata
-define remove-existing-deployments
+define remove-deployments
 	@echo "🗑️  Removing existing deployments..."
-	@BRANCH=$$(git branch --show-current || echo "unknown"); \
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"); \
+	echo "Current branch: $$BRANCH"; \
 	vercel list --meta branch=$$BRANCH --meta app=$(1) --token $$VERCEL_TOKEN --cwd apps/$(1) 2>/dev/null | grep -o "https://[^ ]*\.vercel\.app" | while read url; do \
 		echo "   Removing: $$url"; \
 		vercel remove $$url --token $$VERCEL_TOKEN --yes 2>/dev/null || true; \
 	done
 endef
 
-# Function to create new deployment
-define create-deployment
-	@echo "🚀 Creating new $(1) deployment..."
-	@BRANCH=$$(git branch --show-current || echo "unknown"); \
-	if [ "$$BRANCH" = "develop" ]; then \
-		echo "📦 Using PRODUCTION environment for develop branch"; \
-		vercel pull --yes --environment=production --token $$VERCEL_TOKEN --cwd apps/$(1); \
-		vercel build --prod --token $$VERCEL_TOKEN --cwd apps/$(1); \
-		vercel deploy --prebuilt --archive=tgz --prod --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=develop" --meta "app=$(1)"; \
-	else \
-		echo "🔍 Using PREVIEW environment for $$BRANCH branch"; \
-		vercel pull --yes --environment=preview --token $$VERCEL_TOKEN --cwd apps/$(1); \
-		vercel build --token $$VERCEL_TOKEN --cwd apps/$(1); \
-		vercel deploy --prebuilt --archive=tgz --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=$$BRANCH" --meta "app=$(1)"; \
-	fi
+define create-production
+	@echo "📦 Creating PRODUCTION deployment..."
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"); \
+	echo "Branch: $$BRANCH"; \
+	vercel pull --yes --environment=production --token $$VERCEL_TOKEN --cwd apps/$(1); \
+	vercel build --prod --token $$VERCEL_TOKEN --cwd apps/$(1); \
+	vercel deploy --prebuilt --archive=tgz --prod --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=develop" --meta "app=$(1)" --meta "environment=production"
 endef
 
-# Main targets
+define create-preview
+	@echo "🔍 Creating PREVIEW deployment..."
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"); \
+	echo "Branch: $$BRANCH"; \
+	vercel pull --yes --environment=preview --token $$VERCEL_TOKEN --cwd apps/$(1); \
+	vercel build --token $$VERCEL_TOKEN --cwd apps/$(1); \
+	vercel deploy --prebuilt --archive=tgz --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=$$BRANCH" --meta "app=$(1)" --meta "environment=preview"
+endef
+
+define ls-deployments
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"); \
+	vercel list --meta branch=$$BRANCH --meta app=$(1) --token $$VERCEL_TOKEN --cwd apps/$(1)
+endef
+
+builder-production:
+	$(call create-production,builder)
+
+viewer-production:
+	$(call create-production,viewer)
+
+builder-preview:
+	$(call create-preview,builder)
+
+viewer-preview:
+	$(call create-preview,viewer)
+
 builder:
 	$(call remove-existing-deployments,builder)
-	$(call create-deployment,builder)
+	$(call create-preview,builder)
 
 viewer:
 	$(call remove-existing-deployments,viewer)
-	$(call create-deployment,viewer)
+	$(call create-preview,viewer)
 
-# List deployments
 ls-builder:
-	vercel list --meta branch=$(shell git branch --show-current) --meta app=builder --token $$VERCEL_TOKEN --cwd apps/builder
+	$(call ls-deployments,builder)
 
 ls-viewer:
-	vercel list --meta branch=$(shell git branch --show-current) --meta app=viewer --token $$VERCEL_TOKEN --cwd apps/viewer
+	$(call ls-deployments,viewer)
 
-# Remove only targets
-remove-builder:
-	$(call remove-existing-deployments,builder)
+remove-builder-production:
+	$(call remove-deployments,builder,production)
 
-remove-viewer:
-	$(call remove-existing-deployments,viewer)
+remove-viewer-production:
+	$(call remove-deployments,viewer,production)
+
+remove-builder-preview:
+	$(call remove-deployments,builder,preview)
+
+remove-viewer-preview:
+	$(call remove-deployments,viewer,preview)
