@@ -276,7 +276,7 @@ jobs:
           echo "🚀 Deploying to production..."
           echo "App: ${{ matrix.app }}"
           
-          vercel deploy --prod --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=develop" --meta "app=${{ matrix.app }}" --meta "environment=production"
+          vercel deploy --prebuilt --archive=tgz --prod --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=develop" --meta "app=${{ matrix.app }}" --meta "environment=production"
           
           echo "✅ Production deployment completed"
 
@@ -343,7 +343,7 @@ jobs:
           echo "Branch: ${{ github.head_ref || github.ref_name }}"
           echo "Environment: preview"
           
-          vercel deploy --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=${{ github.head_ref }}" --meta "app=${{ matrix.app }}" --meta "environment=preview"
+          vercel deploy --prebuilt --archive=tgz --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=${{ github.head_ref }}" --meta "app=${{ matrix.app }}" --meta "environment=preview"
           
           echo "✅ Preview deployment completed"
 
