@@ -5,6 +5,8 @@ on:
     branches: ["main", "develop"]
   pull_request:
     branches: ["**"]
+  delete:
+    branches: ["feature/**"]
 
 permissions:
   contents: read
@@ -424,3 +426,33 @@ jobs:
         run: |
           echo "Deploying service: ${{ matrix.service }} (${{ env.RAILWAY_SERVICE_ID }})"
           railway redeploy --service ${{ env.RAILWAY_SERVICE_ID }} --yes
+
+  cleanup-feature:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'delete' && startsWith(github.ref, 'refs/heads/feature')
+    strategy:
+      matrix:
+        app: [builder, viewer]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Remove Feature Branch Deployments
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "🗑️  Cleaning up deployments for deleted feature branch..."
+          BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+          echo "Deleted branch: $BRANCH_NAME"
+          echo "App: ${{ matrix.app }}"
+          echo "Environment: preview"
+          
+          vercel list --meta branch="$BRANCH_NAME" --meta app="${{ matrix.app }}" --meta environment="preview" --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} 2>/dev/null | grep -o "https://[^ ]*\.vercel\.app" | while read url; do
+            echo "   Removing deployment: $url"
+            vercel remove "$url" --token "$VERCEL_TOKEN" --yes 2>/dev/null || true
+          done
+          
+          echo "✅ Cleanup completed for ${{ matrix.app }} (branch: $BRANCH_NAME)"
