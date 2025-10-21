@@ -276,7 +276,6 @@ jobs:
           echo "🚀 Deploying to production..."
           echo "App: ${{ matrix.app }}"
           
-          # Usar deploy simple sin --prebuilt para evitar problemas de API
           vercel deploy --prod --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=develop" --meta "app=${{ matrix.app }}" --meta "environment=production"
           
           echo "✅ Production deployment completed"
@@ -343,7 +342,9 @@ jobs:
           echo "App: ${{ matrix.app }}"
           echo "Branch: ${{ github.head_ref || github.ref_name }}"
           echo "Environment: preview"
-          vercel deploy --prebuilt --archive=tgz --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }}  --meta "branch=${{ github.head_ref }}" --meta "app=${{ matrix.app }}" --meta "environment=preview"
+          
+          vercel deploy --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=${{ github.head_ref }}" --meta "app=${{ matrix.app }}" --meta "environment=preview"
+          
           echo "✅ Preview deployment completed"
 
   deploy-railway:
