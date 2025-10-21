@@ -61,8 +61,8 @@ jobs:
 
       - name: Copy env to .env
         run: |
-          chmod +x .github/scripts/setup-env.sh
-          ./.github/scripts/setup-env.sh .env
+          chmod +x scripts/setup-env.sh
+          ./scripts/setup-env.sh .env
 
       - name: Generate Prisma client (builder)
         if: matrix.app == 'builder'

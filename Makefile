@@ -1,70 +1,60 @@
-define remove-deployments
-	@echo "🗑️  Removing existing deployments..."
-	@BRANCH=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"); \
-	echo "Current branch: $$BRANCH"; \
-	vercel list --meta branch=$$BRANCH --meta app=$(1) --token $$VERCEL_TOKEN --cwd apps/$(1) 2>/dev/null | grep -o "https://[^ ]*\.vercel\.app" | while read url; do \
-		echo "   Removing: $$url"; \
-		vercel remove $$url --token $$VERCEL_TOKEN --yes 2>/dev/null || true; \
-	done
-endef
+# Makefile targets that use scripts from scripts/ directory
 
-define create-production
-	@echo "📦 Creating PRODUCTION deployment..."
-	@BRANCH=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"); \
-	echo "Branch: $$BRANCH"; \
-	vercel pull --yes --environment=production --token $$VERCEL_TOKEN --cwd apps/$(1); \
-	vercel build --prod --token $$VERCEL_TOKEN --cwd apps/$(1); \
-	vercel deploy --prebuilt --archive=tgz --prod --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=develop" --meta "app=$(1)" --meta "environment=production"
-endef
-
-define create-preview
-	@echo "🔍 Creating PREVIEW deployment..."
-	@BRANCH=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"); \
-	echo "Branch: $$BRANCH"; \
-	vercel pull --yes --environment=preview --token $$VERCEL_TOKEN --cwd apps/$(1); \
-	vercel build --token $$VERCEL_TOKEN --cwd apps/$(1); \
-	vercel deploy --prebuilt --archive=tgz --token $$VERCEL_TOKEN --cwd apps/$(1) --meta "branch=$$BRANCH" --meta "app=$(1)" --meta "environment=preview"
-endef
-
-define ls-deployments
-	@BRANCH=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"); \
-	vercel list --meta branch=$$BRANCH --meta app=$(1) --token $$VERCEL_TOKEN --cwd apps/$(1)
-endef
-
+# Production deployments
 builder-production:
-	$(call create-production,builder)
+	./scripts/create-production.sh builder
 
 viewer-production:
-	$(call create-production,viewer)
+	./scripts/create-production.sh viewer
 
+# Preview deployments
 builder-preview:
-	$(call create-preview,builder)
+	./scripts/create-preview.sh builder
 
 viewer-preview:
-	$(call create-preview,viewer)
+	./scripts/create-preview.sh viewer
 
+# Main targets (remove + create)
 builder:
-	$(call remove-existing-deployments,builder)
-	$(call create-preview,builder)
+	./scripts/remove-deployments.sh builder preview
+	./scripts/create-preview.sh builder
 
 viewer:
-	$(call remove-existing-deployments,viewer)
-	$(call create-preview,viewer)
+	./scripts/remove-deployments.sh viewer preview
+	./scripts/create-preview.sh viewer
 
+# List deployments
 ls-builder:
-	$(call ls-deployments,builder)
+	./scripts/ls-deployments.sh builder
 
 ls-viewer:
-	$(call ls-deployments,viewer)
+	./scripts/ls-deployments.sh viewer
 
+# Remove only targets
 remove-builder-production:
-	$(call remove-deployments,builder,production)
+	./scripts/remove-deployments.sh builder production
 
 remove-viewer-production:
-	$(call remove-deployments,viewer,production)
+	./scripts/remove-deployments.sh viewer production
 
 remove-builder-preview:
-	$(call remove-deployments,builder,preview)
+	./scripts/remove-deployments.sh builder preview
 
 remove-viewer-preview:
-	$(call remove-deployments,viewer,preview)
+	./scripts/remove-deployments.sh viewer preview
+
+# Helper targets
+help:
+	@echo "Available targets:"
+	@echo "  builder-production    - Deploy builder to production"
+	@echo "  viewer-production      - Deploy viewer to production"
+	@echo "  builder-preview        - Deploy builder to preview"
+	@echo "  viewer-preview         - Deploy viewer to preview"
+	@echo "  builder                - Remove + deploy builder (preview)"
+	@echo "  viewer                 - Remove + deploy viewer (preview)"
+	@echo "  ls-builder             - List builder deployments"
+	@echo "  ls-viewer             - List viewer deployments"
+	@echo "  remove-builder-production - Remove builder production deployments"
+	@echo "  remove-viewer-production - Remove viewer production deployments"
+	@echo "  remove-builder-preview   - Remove builder preview deployments"
+	@echo "  remove-viewer-preview    - Remove viewer preview deployments"

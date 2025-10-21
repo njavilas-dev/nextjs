@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ENV_FILE=".github/scripts/.env"
+ENV_FILE=".env"
 
 if [ ! -f "$ENV_FILE" ]; then
     echo "Error: File $ENV_FILE not found"
