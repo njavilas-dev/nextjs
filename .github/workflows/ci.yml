@@ -276,8 +276,7 @@ jobs:
           echo "🚀 Deploying to production..."
           echo "App: ${{ matrix.app }}"
           
-          # Usar deploy simple sin --prebuilt para evitar problemas de API
-          vercel deploy --prod --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=develop" --meta "app=${{ matrix.app }}" --meta "environment=production"
+          vercel deploy --prebuilt --archive=tgz --prod --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=develop" --meta "app=${{ matrix.app }}" --meta "environment=production"
           
           echo "✅ Production deployment completed"
 
@@ -313,7 +312,7 @@ jobs:
       - name: Vercel Pull (Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }}   
+        run: vercel pull --yes --environment=preview --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }}   
 
       - name: Remove Existing Deployments
         env:
@@ -333,12 +332,20 @@ jobs:
       - name: Vercel Build
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel build --prod --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }}   
+        run: vercel build --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }}   
 
-      - name: Vercel Deploy (Production)
+      - name: Vercel Deploy (Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel deploy --prebuilt --archive=tgz --prod --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }}  --meta "branch=develop" --meta "app=${{ matrix.app }}" --meta "environment=production"
+        run: |
+          echo "🚀 Deploying to preview..."
+          echo "App: ${{ matrix.app }}"
+          echo "Branch: ${{ github.head_ref || github.ref_name }}"
+          echo "Environment: preview"
+          
+          vercel deploy --prebuilt --archive=tgz --token "$VERCEL_TOKEN" --cwd apps/${{ matrix.app }} --meta "branch=${{ github.head_ref }}" --meta "app=${{ matrix.app }}" --meta "environment=preview"
+          
+          echo "✅ Preview deployment completed"
 
   deploy-railway:
     runs-on: ubuntu-latest
