@@ -12,6 +12,15 @@ export default function Home() {
           height={38}
           priority
         />
+        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <h2 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">
+            🌿 Current Branch
+          </h2>
+          <code className="bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 font-mono font-semibold px-2 py-1 rounded">
+            feature/test-branch-display
+          </code>
+        </div>
+
         <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
           <li className="mb-2 tracking-[-.01em]">
             Get started by editing{" "}
